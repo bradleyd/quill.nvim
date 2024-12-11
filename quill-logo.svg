@@ -1,0 +1,45 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle (optional, commented out for true minimalism) -->
+  <!-- <circle cx="50" cy="50" r="48" fill="#f3f4f6"/> -->
+  
+  <!-- Quill -->
+  <path
+    d="M75 20 
+       L40 80 
+       L35 77
+       L32 85
+       L30 75
+       L25 72
+       L45 25
+       C45 25 48 22 50 22
+       C52 22 55 25 55 25
+       L75 20
+       Z"
+    fill="#2a2a2a"
+    stroke="#2a2a2a"
+    stroke-width="1.5"
+    stroke-linejoin="round"
+  />
+  
+  <!-- Quill tip -->
+  <path
+    d="M25 72
+       L23 88
+       L32 85"
+    fill="#2a2a2a"
+    stroke="#2a2a2a"
+    stroke-width="1.5"
+    stroke-linejoin="round"
+  />
+  
+  <!-- Feather detail lines -->
+  <path
+    d="M45 35 L60 30
+       M43 45 L58 40
+       M41 55 L56 50
+       M39 65 L54 60"
+    stroke="#4a4a4a"
+    stroke-width="1.5"
+    stroke-linecap="round"
+  />
+</svg>

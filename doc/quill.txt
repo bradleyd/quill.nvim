@@ -1,0 +1,165 @@
+*quill.txt*  An elegant note-taking plugin for Neovim
+
+================================================================================
+CONTENTS                                                           *quill-contents*
+
+  1. Introduction ....................................... |quill-introduction|
+  2. Requirements ...................................... |quill-requirements|
+  3. Installation ..................................... |quill-installation|
+  4. Configuration .................................... |quill-configuration|
+  5. Commands ......................................... |quill-commands|
+  6. Mappings ......................................... |quill-mappings|
+  7. Tags ............................................. |quill-tags|
+  8. Functions ........................................ |quill-functions|
+
+================================================================================
+1. INTRODUCTION                                               *quill-introduction*
+
+Quill is an elegant note-taking plugin for Neovim that emphasizes simplicity and
+efficiency. It provides an intuitive way to create, organize, and search through
+markdown-based notes with features like tagging, directory organization, and
+timestamp insertion.
+
+================================================================================
+2. REQUIREMENTS                                               *quill-requirements*
+
+The following dependencies are required:
+
+- Neovim >= 0.8.0
+- plenary.nvim (required)
+- telescope.nvim (optional, but recommended for improved search)
+
+================================================================================
+3. INSTALLATION                                               *quill-installation*
+
+Using lazy.nvim: >
+
+  {
+    "yourusername/quill.nvim",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "nvim-telescope/telescope.nvim",
+    },
+    opts = {
+      notes_dir = vim.fn.expand("~/notes"),
+      date_format = "%Y-%m-%d %H:%M:%S",
+      default_extension = ".md",
+      tags_file = "tags.json",
+      tag_identifier = "#"
+    },
+  }
+<
+
+================================================================================
+4. CONFIGURATION                                             *quill-configuration*
+
+Quill can be configured by passing options to the setup function:
+
+>
+  require('quill').setup({
+    -- Directory where notes will be stored
+    notes_dir = vim.fn.expand("~/notes"),
+    
+    -- Format for timestamps
+    date_format = "%Y-%m-%d %H:%M:%S",
+    
+    -- Default file extension for new notes
+    default_extension = ".md",
+    
+    -- File to store tag metadata
+    tags_file = "tags.json",
+    
+    -- Symbol to use for tags
+    tag_identifier = "#"
+  })
+<
+
+================================================================================
+5. COMMANDS                                                       *quill-commands*
+
+                                                                    *:QuillNew*
+:QuillNew [title]
+    Create a new note with the given title. If no title is provided, uses
+    timestamp as the filename.
+
+                                                                  *:QuillSearch*
+:QuillSearch
+    Search through all notes using Telescope (if available) or built-in search.
+
+                                                              *:QuillTimestamp*
+:QuillTimestamp
+    Insert current timestamp at cursor position.
+
+                                                                   *:QuillTag*
+:QuillTag [tag]
+    Add a tag at cursor position. If tag is provided, inserts it directly.
+    Otherwise, prompts for tag name.
+
+                                                            *:QuillSearchTags*
+:QuillSearchTags
+    Search notes by tag. Shows a list of available tags and finds notes
+    containing the selected tag.
+
+                                                             *:QuillListTags*
+:QuillListTags
+    Show all tags with the number of notes using each tag.
+
+================================================================================
+6. MAPPINGS                                                       *quill-mappings*
+
+Default mappings (all use <leader>q prefix):
+
+  <leader>qn     Create new note           |:QuillNew|
+  <leader>qf     Search notes              |:QuillSearch|
+  <leader>qi     Insert timestamp          |:QuillTimestamp|
+  <leader>qa     Add tag                   |:QuillTag|
+  <leader>qft    Search by tag             |:QuillSearchTags|
+  <leader>qlt    List tags                 |:QuillListTags|
+
+================================================================================
+7. TAGS                                                             *quill-tags*
+
+Tags in Quill are managed automatically and can be used to organize and find
+notes easily. Tags are identified by the configured tag_identifier (default: #).
+
+Example usage in notes: >
+  # Meeting Notes
+  Tags: #project #meeting #todo
+
+  ## Action Items
+  - Review documentation #priority
+  - Schedule follow-up #planning
+<
+
+Tags are indexed automatically when saving notes and stored in the configured
+tags_file. You can search through tagged notes using |:QuillSearchTags| or view
+all tags using |:QuillListTags|.
+
+================================================================================
+8. FUNCTIONS                                                     *quill-functions*
+
+The following Lua functions are available for custom configurations:
+
+quill.setup({opts})                                            *quill.setup()*
+    Initialize the plugin with the given options.
+
+quill.new_note({title})                                    *quill.new_note()*
+    Create a new note with the given title.
+
+quill.search_notes()                                   *quill.search_notes()*
+    Search through all notes.
+
+quill.insert_timestamp()                           *quill.insert_timestamp()*
+    Insert current timestamp at cursor position.
+
+quill.add_tag({tag})                                      *quill.add_tag()*
+    Add a tag at cursor position.
+
+quill.search_by_tag()                               *quill.search_by_tag()*
+    Search notes by tag.
+
+quill.list_tags()                                       *quill.list_tags()*
+    Show all tags.
+
+================================================================================
+vim:ft=help:tw=78:ts=8:noet:
