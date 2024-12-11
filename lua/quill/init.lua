@@ -58,8 +58,8 @@ local function update_tags_for_current_file()
 	local current_file = vim.fn.expand("%:p")
 
 	-- Debug current file path
-	vim.notify("Current file: " .. current_file)
-	vim.notify("Notes dir: " .. config.options.notes_dir)
+	--	vim.notify("Current file: " .. current_file)
+	--	vim.notify("Notes dir: " .. config.options.notes_dir)
 
 	-- Check if file is in notes directory
 	if not string.find(current_file, config.options.notes_dir, 1, true) then
@@ -69,7 +69,7 @@ local function update_tags_for_current_file()
 
 	-- Get path relative to notes directory
 	local relative_path = current_file:sub(#config.options.notes_dir + 2) -- +2 to account for trailing slash
-	vim.notify("Relative path: " .. relative_path)
+	--vim.notify("Relative path: " .. relative_path)
 
 	local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
 	local tags = {}
@@ -78,13 +78,13 @@ local function update_tags_for_current_file()
 	for _, line in ipairs(lines) do
 		for tag in line:gmatch(config.options.tag_identifier .. "(%w+)") do
 			tags[tag] = true
-			vim.notify("Found tag: " .. tag)
+			--vim.notify("Found tag: " .. tag)
 		end
 	end
 
 	-- Update tags database
 	local tags_data = load_tags()
-	vim.notify("Current tags data: " .. vim.inspect(tags_data))
+	--vim.notify("Current tags data: " .. vim.inspect(tags_data))
 
 	-- Remove old file entries
 	for tag, files in pairs(tags_data) do
@@ -103,12 +103,12 @@ local function update_tags_for_current_file()
 			tags_data[tag] = {}
 		end
 		table.insert(tags_data[tag], relative_path)
-		vim.notify("Added path " .. relative_path .. " to tag " .. tag)
+		--vim.notify("Added path " .. relative_path .. " to tag " .. tag)
 	end
 
 	-- Save updated tags
 	save_tags(tags_data)
-	vim.notify("Saved tags data: " .. vim.inspect(tags_data))
+	--vim.notify("Saved tags data: " .. vim.inspect(tags_data))
 end
 
 -- Create a new note
