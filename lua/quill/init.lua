@@ -263,34 +263,60 @@ function M.list_tags()
 end
 
 -- Plugin setup function
-function M.setup(opts)
+function M.setup(user_opts)
 	-- Initialize configuration
-	config.setup(opts)
+	config.setup(user_opts)
 
-	-- Create user commands
-	vim.api.nvim_create_user_command("QuillNew", function(opts)
-		M.new_note(opts.args)
-	end, { nargs = "?" })
+	-- Create user commands with global availability
+	local commands = {
+		{
+			name = "QuillNew",
+			callback = function(cmd_opts)
+				M.new_note(cmd_opts.args)
+			end,
+			opts = { nargs = "?" },
+		},
+		{
+			name = "QuillSearch",
+			callback = function()
+				M.search_notes()
+			end,
+			opts = {},
+		},
+		{
+			name = "QuillTimestamp",
+			callback = function()
+				M.insert_timestamp()
+			end,
+			opts = {},
+		},
+		{
+			name = "QuillTag",
+			callback = function(cmd_opts)
+				M.add_tag(cmd_opts.args)
+			end,
+			opts = { nargs = "?" },
+		},
+		{
+			name = "QuillSearchTags",
+			callback = function()
+				M.search_by_tag()
+			end,
+			opts = {},
+		},
+		{
+			name = "QuillListTags",
+			callback = function()
+				M.list_tags()
+			end,
+			opts = {},
+		},
+	}
 
-	vim.api.nvim_create_user_command("QuillSearch", function()
-		M.search_notes()
-	end, {})
-
-	vim.api.nvim_create_user_command("QuillTimestamp", function()
-		M.insert_timestamp()
-	end, {})
-
-	vim.api.nvim_create_user_command("QuillTag", function(opts)
-		M.add_tag(opts.args)
-	end, { nargs = "?" })
-
-	vim.api.nvim_create_user_command("QuillSearchTags", function()
-		M.search_by_tag()
-	end, {})
-
-	vim.api.nvim_create_user_command("QuillListTags", function()
-		M.list_tags()
-	end, {})
+	-- Register each command
+	for _, cmd in ipairs(commands) do
+		vim.api.nvim_create_user_command(cmd.name, cmd.callback, cmd.opts)
+	end
 
 	-- Set up autocommands for tag management
 	local group = vim.api.nvim_create_augroup("Quill", { clear = true })
@@ -299,6 +325,26 @@ function M.setup(opts)
 		pattern = config.options.notes_dir .. "/**/*" .. config.options.default_extension,
 		callback = function()
 			update_tags_for_current_file()
+		end,
+	})
+
+	-- Set up buffer-local keymaps when opening markdown files in notes directory
+	vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
+		group = group,
+		pattern = config.options.notes_dir .. "/**/*" .. config.options.default_extension,
+		callback = function()
+			-- Add any buffer-local settings or mappings here if needed
+			vim.opt_local.wrap = true
+			vim.opt_local.linebreak = true
+		end,
+	})
+
+	-- Create FileType autocmd for any markdown file
+	vim.api.nvim_create_autocmd("FileType", {
+		group = group,
+		pattern = "markdown",
+		callback = function()
+			-- Add markdown-specific settings here if needed
 		end,
 	})
 end
