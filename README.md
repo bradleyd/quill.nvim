@@ -68,6 +68,14 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
         "nvim-lua/plenary.nvim",
         "nvim-telescope/telescope.nvim", -- optional but recommended
     },
+    cmd = { -- Register commands for lazy loading
+        "QuillNew",
+        "QuillSearch",
+        "QuillTimestamp",
+        "QuillTag",
+        "QuillSearchTags",
+        "QuillListTags",
+    },
     opts = {
         notes_dir = vim.fn.expand("~/notes"), --set this to what ever you like
         date_format = "%Y-%m-%d %H:%M:%S",
