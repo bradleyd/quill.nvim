@@ -27,7 +27,7 @@ Using [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ```lua
 {
-    "bradleydsmith/quill.nvim",
+    "bradleyd/quill.nvim",
     dependencies = {
         "nvim-lua/plenary.nvim",
         "nvim-telescope/telescope.nvim", -- optional but recommended
