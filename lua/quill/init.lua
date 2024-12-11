@@ -56,13 +56,21 @@ end
 -- Update tags for the current file
 local function update_tags_for_current_file()
 	local current_file = vim.fn.expand("%:p")
+
+	-- Debug current file path
+	vim.notify("Current file: " .. current_file)
+	vim.notify("Notes dir: " .. config.options.notes_dir)
+
 	-- Check if file is in notes directory
-	if not vim.startswith(current_file, config.options.notes_dir) then
+	if not string.find(current_file, config.options.notes_dir, 1, true) then
+		vim.notify("File not in notes directory")
 		return
 	end
 
-	-- Get relative path from notes directory
-	local relative_path = vim.fn.fnamemodify(current_file, ":.")
+	-- Get path relative to notes directory
+	local relative_path = current_file:sub(#config.options.notes_dir + 2) -- +2 to account for trailing slash
+	vim.notify("Relative path: " .. relative_path)
+
 	local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
 	local tags = {}
 
@@ -70,11 +78,13 @@ local function update_tags_for_current_file()
 	for _, line in ipairs(lines) do
 		for tag in line:gmatch(config.options.tag_identifier .. "(%w+)") do
 			tags[tag] = true
+			vim.notify("Found tag: " .. tag)
 		end
 	end
 
 	-- Update tags database
 	local tags_data = load_tags()
+	vim.notify("Current tags data: " .. vim.inspect(tags_data))
 
 	-- Remove old file entries
 	for tag, files in pairs(tags_data) do
@@ -93,10 +103,12 @@ local function update_tags_for_current_file()
 			tags_data[tag] = {}
 		end
 		table.insert(tags_data[tag], relative_path)
+		vim.notify("Added path " .. relative_path .. " to tag " .. tag)
 	end
 
 	-- Save updated tags
 	save_tags(tags_data)
+	vim.notify("Saved tags data: " .. vim.inspect(tags_data))
 end
 
 -- Create a new note
@@ -248,12 +260,15 @@ function M.search_by_tag()
 						finder = require("telescope.finders").new_table({
 							results = files,
 							entry_maker = function(entry)
+								-- Construct full path by combining notes_dir with the relative path
+								local full_path = config.options.notes_dir .. "/" .. entry
+								-- For display, just show the relative path
 								return {
 									value = entry,
 									display = entry,
 									ordinal = entry,
-									path = entry,
-									filename = entry,
+									path = full_path,
+									filename = full_path,
 								}
 							end,
 						}),
@@ -264,6 +279,7 @@ function M.search_by_tag()
 								local selection = require("telescope.actions.state").get_selected_entry()
 								require("telescope.actions").close(prompt_bufnr)
 								if selection then
+									-- Use the full path when opening the file
 									vim.cmd("edit " .. vim.fn.fnameescape(selection.path))
 								end
 							end)
@@ -272,10 +288,12 @@ function M.search_by_tag()
 					})
 					:find()
 			else
+				-- Fallback to quickfix list
 				local qf_list = {}
 				for _, file in ipairs(files) do
+					local full_path = config.options.notes_dir .. "/" .. file
 					table.insert(qf_list, {
-						filename = file,
+						filename = full_path,
 						text = "Tagged with " .. config.options.tag_identifier .. tag,
 					})
 				end
@@ -365,33 +383,31 @@ function M.setup(user_opts)
 
 	-- Set up autocommands for tag management
 	local group = vim.api.nvim_create_augroup("Quill", { clear = true })
+
+	-- Modified BufWritePost autocmd to trigger for any markdown file
 	vim.api.nvim_create_autocmd("BufWritePost", {
 		group = group,
-		pattern = config.options.notes_dir .. "/**/*" .. config.options.default_extension,
+		pattern = "*.md",
 		callback = function()
-			update_tags_for_current_file()
+			-- Only process files in the notes directory
+			local current_file = vim.fn.expand("%:p")
+			if string.find(current_file, config.options.notes_dir, 1, true) then
+				update_tags_for_current_file()
+			end
 		end,
 	})
 
 	-- Set up buffer-local keymaps when opening markdown files in notes directory
 	vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
 		group = group,
-		pattern = config.options.notes_dir .. "/**/*" .. config.options.default_extension,
+		pattern = "*.md",
 		callback = function()
-			-- Add any buffer-local settings or mappings here if needed
-			vim.opt_local.wrap = true
-			vim.opt_local.linebreak = true
-		end,
-	})
-
-	-- Create FileType autocmd for any markdown file
-	vim.api.nvim_create_autocmd("FileType", {
-		group = group,
-		pattern = "markdown",
-		callback = function()
-			-- Add markdown-specific settings here if needed
+			local current_file = vim.fn.expand("%:p")
+			if string.find(current_file, config.options.notes_dir, 1, true) then
+				vim.opt_local.wrap = true
+				vim.opt_local.linebreak = true
+			end
 		end,
 	})
 end
-
 return M
