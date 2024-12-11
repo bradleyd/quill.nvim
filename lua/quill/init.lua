@@ -3,28 +3,65 @@ local M = {}
 
 -- Load tags from tags file
 local function load_tags()
+	-- Get absolute path to tags file
 	local tags_path = config.options.notes_dir .. "/" .. config.options.tags_file
-	if vim.fn.filereadable(tags_path) == 1 then
-		local content = vim.fn.readfile(tags_path)
-		return vim.json.decode(content[1] or "{}")
+	-- Create empty tags file if it doesn't exist
+	if vim.fn.filereadable(tags_path) == 0 then
+		-- Create an empty tags structure
+		local empty_tags = vim.json.encode({})
+		-- Ensure directory exists
+		if vim.fn.isdirectory(config.options.notes_dir) == 0 then
+			vim.fn.mkdir(config.options.notes_dir, "p")
+		end
+		-- Write empty tags file
+		vim.fn.writefile({ empty_tags }, tags_path)
+		return {}
 	end
-	return {}
+	-- Read existing tags
+	local content = vim.fn.readfile(tags_path)
+	-- Handle empty file case
+	if #content == 0 then
+		return {}
+	end
+	-- Parse JSON content
+	local ok, decoded = pcall(vim.json.decode, content[1])
+	if not ok then
+		vim.notify("Error reading tags file: " .. decoded, vim.log.levels.ERROR)
+		return {}
+	end
+	return decoded
 end
 
 -- Save tags to tags file
 local function save_tags(tags_data)
+	-- Get absolute path to tags file
 	local tags_path = config.options.notes_dir .. "/" .. config.options.tags_file
-	local content = vim.json.encode(tags_data)
-	vim.fn.writefile({ content }, tags_path)
+	-- Encode tags data
+	local ok, encoded = pcall(vim.json.encode, tags_data)
+	if not ok then
+		vim.notify("Error encoding tags data: " .. encoded, vim.log.levels.ERROR)
+		return
+	end
+	-- Ensure directory exists
+	if vim.fn.isdirectory(config.options.notes_dir) == 0 then
+		vim.fn.mkdir(config.options.notes_dir, "p")
+	end
+	-- Write tags file
+	local write_ok, write_error = pcall(vim.fn.writefile, { encoded }, tags_path)
+	if not write_ok then
+		vim.notify("Error writing tags file: " .. write_error, vim.log.levels.ERROR)
+	end
 end
 
 -- Update tags for the current file
 local function update_tags_for_current_file()
 	local current_file = vim.fn.expand("%:p")
+	-- Check if file is in notes directory
 	if not vim.startswith(current_file, config.options.notes_dir) then
 		return
 	end
 
+	-- Get relative path from notes directory
 	local relative_path = vim.fn.fnamemodify(current_file, ":.")
 	local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
 	local tags = {}
@@ -44,6 +81,10 @@ local function update_tags_for_current_file()
 		tags_data[tag] = vim.tbl_filter(function(f)
 			return f ~= relative_path
 		end, files)
+		-- Remove tags with no files
+		if #tags_data[tag] == 0 then
+			tags_data[tag] = nil
+		end
 	end
 
 	-- Add new tags
@@ -54,6 +95,7 @@ local function update_tags_for_current_file()
 		table.insert(tags_data[tag], relative_path)
 	end
 
+	-- Save updated tags
 	save_tags(tags_data)
 end
 
@@ -266,6 +308,9 @@ end
 function M.setup(user_opts)
 	-- Initialize configuration
 	config.setup(user_opts)
+
+	-- Initialize tags file
+	load_tags() -- This will create the tags file if it doesn't exist
 
 	-- Create user commands with global availability
 	local commands = {
